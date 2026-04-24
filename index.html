@@ -4,57 +4,117 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#8b0000" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Eclipse RPG" />
   <link rel="manifest" href="manifest.json" />
   <title>Eclipse RPG</title>
-  <script src="https://js.puter.com/v2/"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap');
-    :root { --blood: #8b0000; --ember: #c0392b; --gold: #a07830; --void: #0a0a0a; --pale: #c8beb0; --white: #f0e8e0; --panel: #0d0404; --border2: #2a1515; }
+    :root { 
+      --blood: #8b0000; --ember: #c0392b; --gold: #a07830; --void: #0a0a0a; --pale: #c8beb0; --white: #f0e8e0; --panel: #0d0404; --border2: #2a1515; 
+      --font-display: 'Cinzel Decorative', serif; 
+      --font-body: 'Crimson Pro', serif;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; min-height: 100%; background: var(--void); color: var(--pale); font-family: 'Crimson Pro', Georgia, serif; overflow-y: auto; -webkit-font-smoothing: antialiased; }
+    html, body { width: 100%; height: 100%; background-color: var(--void); color: var(--pale); font-family: var(--font-body); overflow-x: hidden; position: relative; -webkit-font-smoothing: antialiased; }
     .bg { position: fixed; inset: 0; z-index: -2; background: radial-gradient(ellipse at 50% 110%, #1a0505 0%, #0a0a0a 65%); }
     .scanlines { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); }
-    .embers { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+    .embers { position: fixed; inset: 0; pointer-events: none; z-index: -1; background-image: radial-gradient(circle, var(--ember) 1px, transparent 1px); background-size: 100px 100px; opacity: 0.2; }
     .ember { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: var(--ember); animation: rise var(--dur) ease-in infinite; left: var(--x); bottom: -10px; opacity: 0; }
     @keyframes rise { 0%{transform:translateY(0);opacity:0} 10%{opacity:.8} 100%{transform:translateY(-100vh);opacity:0} }
     #loader { position: fixed; inset: 0; z-index: 200; background: var(--void); display: flex; align-items: center; justify-content: center; transition: opacity 0.8s; }
     #loader.hidden { opacity: 0; pointer-events: none; }
     .loader-ring { width: 40px; height: 40px; border: 2px solid #2a1010; border-top-color: var(--blood); border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .btn { position: relative; padding: 0.8rem 1.5rem; background: transparent; border: 1px solid var(--blood); color: var(--white); font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: 0.3s; margin-bottom: 0.5rem; display: inline-block; text-align: center; }
-    .btn:hover { background: var(--blood); }
-    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-    .btn-ghost { border-color: var(--border2); color: #6a5050; }
-    .screen-overlay { width: 100%; min-height: 100vh; display: flex; flex-direction: column; background: rgba(5,2,2,0.98); padding-bottom: 40px; }
+    .btn { position: relative; padding: 0.8rem 1.5rem; background: rgba(139, 0, 0, 0.1); border: 1px solid var(--blood); color: var(--white); font-family: var(--font-display); font-weight: 700; font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: 0.3s; margin-bottom: 0.5rem; display: inline-block; text-align: center; }
+    .btn:hover { background: var(--blood); color: white; box-shadow: 0 0 15px rgba(139,0,0,0.5); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
+    .btn-ghost { border-color: var(--gold); color: var(--gold); background: transparent; }
+    .btn-ghost:hover { background: rgba(160, 120, 48, 0.2); }
+    .screen-overlay { width: 100%; min-height: 100vh; display: flex; flex-direction: column; background: transparent; padding: 2rem; border: 4px solid var(--void); outline: 1px solid var(--blood); position: relative; z-index: 10; }
     .screen-overlay.hidden { display: none !important; }
-    .cr-header { padding: 1.5rem; border-bottom: 1px solid #1a0808; text-align: center; }
-    .cr-title { font-family: 'Cinzel Decorative', serif; font-size: 1.1rem; color: var(--gold); letter-spacing: 0.1em; }
-    .cr-body { flex: 1; padding: 1.5rem; max-width: 600px; margin: 0 auto; width: 100%; }
-    .cr-footer { padding: 1rem; display: flex; gap: 0.5rem; max-width: 600px; margin: 0 auto; width: 100%; }
-    .epic-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid #2a1515; color: var(--white); font-family: 'Cinzel Decorative', serif; font-size: 1.3rem; padding: 0.5rem; text-align: center; outline: none; margin-bottom: 2rem; }
+    .cr-header { padding-bottom: 1.5rem; border-bottom: 1px solid rgba(160, 120, 48, 0.2); text-align: center; margin-bottom: 1.5rem; }
+    .cr-title { font-family: var(--font-display); font-size: 2.5rem; color: var(--blood); text-shadow: 0 0 15px rgba(139, 0, 0, 0.6); letter-spacing: 0.1em; text-transform: uppercase; }
+    .cr-body { flex: 1; margin: 0 auto; width: 100%; max-width: 1200px; }
+    .cr-footer { padding-top: 1.5rem; margin-top: auto; display: flex; gap: 0.5rem; max-width: 600px; margin-inline: auto; width: 100%; border-top: 1px solid rgba(160, 120, 48, 0.2); font-size: 0.7rem; color: var(--gold); }
+    .epic-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--blood); color: var(--white); font-family: var(--font-display); font-size: 1.3rem; padding: 0.5rem; text-align: center; outline: none; margin-bottom: 2rem; }
     .race-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
-    .race-card, .trait-card, .gender-btn { border: 1px solid #1f0f0f; padding: 1rem; background: var(--panel); cursor: pointer; text-align: left; transition: 0.2s; }
-    .race-card.selected, .trait-card.selected, .gender-btn.selected { border-color: var(--blood); background: #150505; }
-    .epic-textarea { width: 100%; background: #0d0404; border: 1px solid #1f0f0f; color: var(--pale); padding: 0.8rem; font-family: 'Crimson Pro', serif; resize: none; outline: none; margin-bottom: 1rem; line-height: 1.6; }
-    .portrait-frame { width: 100%; aspect-ratio: 2/3; border: 1px solid var(--border2); background: #000; position: relative; margin-bottom: 1.5rem; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .race-card, .trait-card { border: 1px solid rgba(139,0,0,0.3); padding: 1rem; background: rgba(10,10,10,0.8); cursor: pointer; text-align: left; transition: 0.2s; }
+    .race-card.selected, .trait-card.selected { border-color: var(--blood); background: rgba(139,0,0,0.2); box-shadow: 0 0 10px rgba(139,0,0,0.5); }
+    .epic-textarea { width: 100%; background: rgba(10,10,10,0.8); border: 1px solid var(--blood); color: var(--pale); padding: 1rem; font-family: var(--font-body); resize: none; outline: none; margin-bottom: 1rem; line-height: 1.6; }
+    .portrait-frame { width: 100%; max-width: 400px; margin: 0 auto 1.5rem auto; aspect-ratio: 2/3; border: 2px solid var(--gold); box-shadow: 0 0 30px rgba(0,0,0,1); background: #000; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .portrait-img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s; }
-    #game-image-wrapper { width: 100%; aspect-ratio: 16/9; margin-bottom: 1.5rem; border: 1px solid var(--border); background: var(--panel); position: relative; display: flex; align-items: center; justify-content: center; min-height: 180px; overflow: hidden; }
+    #game-image-wrapper { width: 100%; aspect-ratio: 16/9; margin-bottom: 1.5rem; border: 2px solid var(--gold); box-shadow: 0 0 30px rgba(0,0,0,1); background: #000; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .game-image { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: 0.5s; }
-    .lupa-btn { position: absolute; bottom: 10px; right: 10px; width: 34px; height: 34px; background: rgba(0,0,0,0.7); border: 1px solid var(--blood); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
-    .cronista-text { font-family: 'Crimson Pro', serif; font-size: 1.1rem; line-height: 1.8; color: var(--pale); white-space: pre-wrap; margin-bottom: 2rem; }
-    .choice-btn { width: 100%; text-align: left; padding: 1.1rem; font-family: 'Crimson Pro', serif; font-style: italic; font-size: 0.95rem; border: 1px solid #2a1515; background: #0d0404; color: var(--pale); cursor: pointer; margin-bottom: 0.8rem; }
-    .custom-action-ctr { margin-top: 1.5rem; border-top: 1px dashed #2a1515; padding-top: 1.5rem; }
-    .custom-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--gold); color: #fff; font-family: 'Crimson Pro', serif; font-size: 1rem; padding: 0.5rem 0; outline: none; margin-bottom: 0.5rem; }
-    .status-badge { font-size: 0.7rem; color: var(--gold); border: 1px solid #2a1515; padding: 0.4rem 0.8rem; border-radius: 4px; display: inline-block; margin-top: 0.8rem; background: #0a0505; font-style: italic; border-left: 3px solid var(--blood); }
-    #injury-log { font-size: 0.65rem; color: #7a3030; margin-top: 0.3rem; font-style: italic; }
-    #screen-lightbox { position: fixed; inset: 0; z-index: 1000; background: #000; display: none; align-items: center; justify-content: center; }
+    .lupa-btn { position: absolute; bottom: 10px; right: 10px; width: 34px; height: 34px; border: 1px solid var(--gold); background: rgba(0,0,0,0.7); color: var(--gold); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; font-size: 1.2rem; }
+    .lupa-btn:hover { background: var(--blood); color: white; border-color: var(--blood); }
+    .cronista-text { background: rgba(10, 10, 10, 0.8); border: 1px solid var(--blood); border-left: 4px solid var(--blood); padding: 1.5rem; font-size: 1.15rem; line-height: 1.5; color: var(--pale); white-space: pre-wrap; margin-bottom: 1rem; position: relative; font-style: italic; }
+    .cronista-text::before { content: 'NARRATIVA:'; font-family: var(--font-display); font-size: 0.8rem; color: var(--blood); display: block; margin-bottom: 0.5rem; opacity: 0.8; font-style: normal; }
+    .choice-btn { width: 100%; text-align: left; padding: 1rem; font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.05em; border: 1px solid var(--blood); background: rgba(139, 0, 0, 0.1); color: var(--pale); cursor: pointer; margin-bottom: 0.75rem; transition: all 0.2s; position: relative; text-transform: uppercase; }
+    .choice-btn:hover { background: var(--blood); color: white; box-shadow: 0 0 10px rgba(139,0,0,0.5); }
+    .custom-action-ctr { margin-top: 1rem; border-top: 1px solid rgba(160, 120, 48, 0.2); padding-top: 1rem; }
+    .custom-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--gold); color: #fff; font-family: var(--font-body); font-style: italic; font-size: 1.1rem; padding: 0.5rem 0; outline: none; margin-bottom: 1rem; }
+    .custom-input::placeholder { color: rgba(200, 190, 176, 0.5); }
+    .status-badge { font-size: 0.8rem; color: var(--gold); font-family: var(--font-body); padding: 0.5rem 0; display: inline-block; margin-top: 0.5rem; }
+    .hp-container { display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end; margin-top: 0.2rem; }
+    .hp-label { color: var(--blood); font-size: 1.2rem; font-family: var(--font-display); text-shadow: 0 0 5px rgba(139,0,0,0.8); }
+    .hp-bar-bg { width: 120px; height: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--blood); overflow: hidden; }
+    .hp-bar-fill { height: 100%; background: var(--blood); width: 100%; transition: width 0.5s ease-out; box-shadow: 0 0 10px var(--blood); }
+    
+    @keyframes bloodPulse {
+        0% { box-shadow: inset 0 0 0px transparent; }
+        50% { box-shadow: inset 0 0 100px rgba(139,0,0,0.6); border: 2px solid var(--blood); }
+        100% { box-shadow: inset 0 0 0px transparent; }
+    }
+    .blood-flash { animation: bloodPulse 4s ease-out; }
+
+    #screen-lightbox { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; padding: 2rem; }
     #screen-lightbox.active { display: flex; }
-    #lightbox-img { max-width: 100%; max-height: 100%; object-fit: contain; }
-    #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--blood); color: #fff; padding: 0.6rem 1.2rem; font-size: 0.8rem; z-index: 2000; opacity: 0; transition: 0.3s; pointer-events: none; }
+    #lightbox-img { max-width: 100%; max-height: 100%; object-fit: contain; border: 2px solid var(--gold); box-shadow: 0 0 50px rgba(0,0,0,1); }
+    #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--blood); color: #fff; padding: 0.6rem 1.2rem; font-size: 0.8rem; z-index: 2000; opacity: 0; transition: 0.3s; pointer-events: none; font-family: var(--font-display); box-shadow: 0 0 15px rgba(139,0,0,0.8); }
+
+    @media (min-width: 900px) {
+      #screen-game .cr-body { display: grid; grid-template-areas: "image text" "image choices" "image custom"; grid-template-columns: 1fr 380px; gap: 1rem 2rem; align-items: start; }
+      #game-image-wrapper { grid-area: image; height: 100%; max-height: 70vh; margin-bottom: 0 !important; }
+      .cronista-text { grid-area: text; margin-bottom: 0 !important; }
+      #choices-ctr { grid-area: choices; display: flex; flex-direction: column; gap: 0.75rem; }
+      #customActionCtr { grid-area: custom; margin-top: 0 !important; padding-top: 1rem !important; border-top: 1px solid rgba(160, 120, 48, 0.2) !important; }
+    }
+
+    @keyframes tremble {
+        0% { transform: translate(1px, 1px) rotate(0deg); }
+        10% { transform: translate(-1px, -2px) rotate(-1deg); }
+        20% { transform: translate(-3px, 0px) rotate(1deg); }
+        30% { transform: translate(3px, 2px) rotate(0deg); }
+        40% { transform: translate(1px, -1px) rotate(1deg); }
+        50% { transform: translate(-1px, 2px) rotate(-1deg); }
+        60% { transform: translate(-3px, 1px) rotate(0deg); }
+        70% { transform: translate(3px, 1px) rotate(-1deg); }
+        80% { transform: translate(-1px, -1px) rotate(1deg); }
+        90% { transform: translate(1px, 2px) rotate(0deg); }
+        100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
+    .text-tremble {
+        animation: tremble 0.2s infinite;
+        color: var(--blood) !important;
+        text-shadow: 0 0 8px rgba(139,0,0,0.8);
+    }
+    @keyframes pact-pulse {
+        0% { transform: scale(1) translate(0, 0); text-shadow: 0 0 5px var(--gold), 0 0 10px var(--gold); }
+        50% { transform: scale(1.02) translate(1px, 1px); color: var(--gold) !important; text-shadow: 0 0 15px var(--void), 0 0 20px var(--gold); }
+        100% { transform: scale(1) translate(0, 0); text-shadow: 0 0 5px var(--gold), 0 0 10px var(--gold); }
+    }
+    .text-pact {
+        animation: pact-pulse 2s infinite;
+        color: var(--white) !important;
+    }
+    @keyframes void-fade {
+        0% { filter: blur(0px); opacity: 1; letter-spacing: 0px; text-shadow: 0 0 0px transparent; }
+        50% { filter: blur(1.5px); opacity: 0.6; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,0,0,0.8); }
+        100% { filter: blur(0px); opacity: 1; letter-spacing: 0px; text-shadow: 0 0 0px transparent; }
+    }
+    .text-void {
+        animation: void-fade 4s infinite;
+        color: #888 !important;
+    }
   </style>
 </head>
 <body>
@@ -66,38 +126,114 @@
   <div id="screen-splash" class="screen-overlay">
     <div class="cr-body" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
         <h1 style="font-family:'Cinzel Decorative'; font-size:2.5rem; color:var(--white); margin-bottom:1rem;">ECLIPSE</h1>
-        <p style="font-style:italic; color:var(--gold); margin-bottom:3rem;">v2.3 — El Nexo de Estabilidad</p>
+        <p style="font-style:italic; color:var(--gold); margin-bottom:3rem;">v4.8 — Reflejos del Alma</p>
         <button class="btn" onclick="showScreen('screen-creation'); renderStep();">⚔ Iniciar Nueva Crónica</button>
-        <button class="btn btn-ghost" style="font-size:0.55rem; margin-top:2rem;" onclick="logoutPuter()">Desvincular Puter</button>
     </div>
   </div>
 
-  <div id="screen-creation" class="screen-overlay hidden"><div class="cr-header"><div class="cr-title" id="crTitle"></div></div><div class="cr-body" id="crBody"></div><div class="cr-footer"><button class="btn btn-ghost" id="btnBack">Atrás</button><button class="btn" style="flex:1" id="btnNext">Continuar</button></div></div>
-  <div id="screen-portrait" class="screen-overlay hidden"><div class="cr-header"><div class="cr-title">Tu Rostro en el Tiempo</div></div><div class="cr-body"><div class="portrait-frame"><div class="loader-ring" id="portraitLoader" style="position:absolute;"></div><img src="" class="portrait-img" id="portraitImg" /></div><div style="display:flex; gap:0.5rem"><button class="btn btn-ghost" style="flex:1" id="btnRegenerate" onclick="generatePortrait()">Regenerar</button><button class="btn" style="flex:1" id="btnConfirmPortrait" disabled onclick="showScreen('screen-memory')">Sellar ⚔</button></div></div></div>
-  <div id="screen-memory" class="screen-overlay hidden"><div class="cr-header"><div class="cr-title">El Último Recuerdo</div></div><div class="cr-body"><p style="font-style:italic; margin-bottom:1rem; font-size:0.9rem; color:#7a6050">«Antes del Eclipse... ¿Qué viste?»</p><textarea class="epic-textarea" id="iMemory" rows="6" placeholder="Escribe tu recuerdo..."></textarea></div><div class="cr-footer"><button class="btn" style="flex:1" onclick="confirmMemory()">Iniciar Destino</button></div></div>
-  <div id="screen-loading" class="screen-overlay hidden" style="align-items:center; justify-content:center;"><div class="loader-ring" style="width:60px; height:60px;"></div><p id="loadingMsg" style="margin-top:2rem; font-family:'Cinzel Decorative'; color:var(--gold); animation:pulse 2s infinite;">El Cronista está escribiendo...</p></div>
+  <!-- BOTÓN GLOBAL ARCHIVO VISUAL -->
+  <div id="btnGallery" class="hidden" onclick="showGallery()" style="position:fixed; bottom:20px; left:20px; z-index:900; background:rgba(0,0,0,0.8); border:1px solid var(--gold); padding:0.5rem 1rem; color:var(--gold); cursor:pointer; font-family:var(--font-display); letter-spacing:0.1em; transition:0.3s;">
+     📁 ARCHIVO
+  </div>
+
+  <!-- GALLERY SCREEN -->
+  <div id="screen-gallery" class="screen-overlay hidden" style="background:rgba(0,0,0,0.95); z-index:950; overflow-y:auto; padding:2rem; align-items:center; display:none;">
+      <div style="width:100%; max-width:800px; display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+          <h2 style="font-family:var(--font-display); color:var(--gold); font-size:1.5rem; margin:0;">Archivo Visual</h2>
+          <button class="btn btn-ghost" onclick="closeGallery()" style="padding:0.5rem 1rem;">Volver</button>
+      </div>
+      <div id="galleryGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem; width:100%; max-width:800px; padding-bottom:4rem;">
+      </div>
+  </div>
+
+  <!-- CREACION -->
+  <div id="screen-creation" class="screen-overlay hidden">
+      <div class="cr-header"><div class="cr-title" id="crTitle"></div></div>
+      <div class="cr-body" id="crBody"></div>
+      <div class="cr-footer">
+          <button class="btn btn-ghost" id="btnBack">Atrás</button>
+          <button class="btn" style="flex:1" id="btnNext">Continuar</button>
+      </div>
+  </div>
+
+  <!-- RETRATO -->
+  <div id="screen-portrait" class="screen-overlay hidden">
+      <div class="cr-header"><div class="cr-title">Tu Rostro en el Tiempo</div></div>
+      <div class="cr-body">
+          <div class="portrait-frame">
+              <div class="loader-ring" id="portraitLoader" style="position:absolute;"></div>
+              <img src="" class="portrait-img" id="portraitImg" />
+              <div class="lupa-btn" onclick="openPortraitLightbox()" id="lupaPortraitBtn" style="display:none">🔍</div>
+          </div>
+          <div style="display:flex; gap:0.5rem">
+              <button class="btn btn-ghost" style="flex:1" id="btnRegenerate" onclick="generatePortrait()">Regenerar</button>
+              <button class="btn" style="flex:1" id="btnConfirmPortrait" disabled onclick="showScreen('screen-memory')">Sellar ⚔</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- RECUERDO -->
+  <div id="screen-memory" class="screen-overlay hidden">
+      <div class="cr-header"><div class="cr-title">El Último Recuerdo</div></div>
+      <div class="cr-body">
+          <p style="font-style:italic; margin-bottom:1rem; font-size:0.9rem; color:#7a6050">«Antes del Eclipse... ¿Qué viste?»</p>
+          <textarea class="epic-textarea" id="iMemory" rows="6" placeholder="Escribe tu recuerdo..."></textarea>
+      </div>
+      <div class="cr-footer">
+          <button class="btn" style="flex:1" onclick="confirmMemory()">Iniciar Destino</button>
+      </div>
+  </div>
+
+  <!-- LOADING NARRATIVA -->
+  <div id="screen-loading" class="screen-overlay hidden" style="align-items:center; justify-content:center;">
+      <div class="loader-ring" style="width:60px; height:60px;"></div>
+      <p id="loadingMsg" style="margin-top:2rem; font-family:'Cinzel Decorative'; color:var(--gold); animation:pulse 2s infinite;">El Cronista entrelaza los hilos...</p>
+  </div>
   
+  <!-- JUEGO -->
   <div id="screen-game" class="screen-overlay hidden">
-    <div class="cr-header" style="display:flex; flex-direction:column; align-items:center;">
-        <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-            <span id="gameCharName" style="font-family:'Cinzel Decorative'; color:var(--gold)"></span>
-            <span id="gameRace" style="font-size:0.7rem; font-style:italic; color:#5a4030"></span>
+    <div class="cr-header" style="display:flex; flex-direction:column; align-items:stretch; text-align:left;">
+        <div style="width:100%; display:flex; justify-content:space-between; align-items:flex-start;">
+            <span id="gameCharName" style="font-family:var(--font-display); font-size:2rem; color:var(--blood); text-shadow:0 0 15px rgba(139,0,0,0.6); letter-spacing:0.1em; text-transform:uppercase;"></span>
+            <div style="text-align:right;">
+                <span id="gameRace" style="font-size:0.7rem; color:var(--gold); letter-spacing:0.2em; text-transform:uppercase;"></span>
+                <div class="hp-container">
+                    <div class="hp-label">HP <span id="hpValue">100</span></div>
+                    <div class="hp-bar-bg"><div class="hp-bar-fill" id="hpBar"></div></div>
+                </div>
+                <div id="gameStatus" class="status-badge" style="display:block; margin-top:0.2rem; text-align:right;">Estado: Intacto</div>
+            </div>
         </div>
-        <div id="gamePhysicalStatus" class="status-badge">Estado: Intacto</div>
-        <div id="injury-log"></div>
     </div>
     <div class="cr-body">
-      <div id="game-image-wrapper" class="hidden"><div class="loader-ring" id="gameImageLoader" style="position:absolute;"></div><img src="" class="game-image" id="gameImage" /><div class="lupa-btn" onclick="openLightbox()">🔍</div></div>
-      <div class="cronista-text" id="gameText"></div><div id="choices-ctr"></div>
+      <div id="game-image-wrapper" class="hidden">
+          <div class="loader-ring" id="gameImageLoader" style="position:absolute;"></div>
+          <img src="" class="game-image" id="gameImage" />
+          <div class="lupa-btn" onclick="openLightbox()">🔍</div>
+      </div>
+      <div id="spikeWarning" style="display:none; color:var(--blood); font-family:var(--font-display); font-size:1.2rem; text-align:center; padding: 1rem; border: 1px solid var(--blood); background: rgba(20,0,0,0.8); margin-bottom:1rem; text-shadow:0 0 10px rgba(139,0,0,1); animation:pulse 2s infinite;"></div>
+      <div class="cronista-text" id="gameText"></div>
+      <div id="choices-ctr"></div>
       <div class="custom-action-ctr" id="customActionCtr" style="display:none">
-          <input type="text" class="custom-input" id="iCustomAction" placeholder="Escribe tu propia voluntad...">
+          <input type="text" class="custom-input" id="iCustomAction" placeholder="Escribe tu propia voluntad..." onkeypress="if(event.key === 'Enter') submitCustomAction()">
           <button class="btn" style="width:100%" onclick="submitCustomAction()">Enviar Voluntad ⚔</button>
       </div>
     </div>
-    <div class="cr-footer" style="background:none; justify-content:center; padding-bottom:3rem;"><div class="loader-ring" id="gameFooterLoader" style="display:none"></div></div>
+    <div class="cr-footer" style="background:none; justify-content:center; padding-bottom:3rem;">
+        <div class="loader-ring" id="gameFooterLoader" style="display:none"></div>
+    </div>
   </div>
 
-  <div id="screen-death" class="screen-overlay hidden" style="background:#050000; align-items:center; justify-content:center; text-align:center;"><h1 style="font-family:'Cinzel Decorative'; font-size:3rem; color:var(--blood); margin-bottom:1rem;">HAS CAÍDO</h1><div id="death-image-wrapper" style="width:90%; max-width:400px; aspect-ratio:1/1; border:1px solid var(--blood); margin-bottom:2rem;"><img src="" id="deathImage" style="width:100%; height:100%; object-fit:cover;" /></div><p id="deathText" style="font-style:italic; margin-bottom:3rem; padding:0 2rem;"></p><button class="btn" onclick="hardReset()">⚔ REENCARNAR</button></div>
+  <!-- MUERTE -->
+  <div id="screen-death" class="screen-overlay hidden" style="background:#050000; align-items:center; justify-content:center; text-align:center;">
+      <h1 style="font-family:var(--font-display); font-size:4rem; color:var(--blood); margin-bottom:1rem; text-shadow:0 0 20px rgba(139,0,0,0.8);">HAS CAÍDO</h1>
+      <div id="death-image-wrapper" style="width:100%; max-width:600px; aspect-ratio:16/9; border:2px solid var(--blood); margin-bottom:2rem; overflow:hidden; position:relative; box-shadow:0 0 30px rgba(139,0,0,0.5);">
+          <img src="" id="deathImage" style="width:100%; height:100%; object-fit:cover;" />
+          <div class="lupa-btn" onclick="openDeathLightbox()">🔍</div>
+      </div>
+      <p id="deathText" style="font-family:var(--font-body); font-style:italic; font-size:1.2rem; margin-bottom:3rem; padding:0 2rem; max-width:800px; line-height:1.6; color:var(--pale);"></p>
+      <button class="btn" onclick="hardReset()">⚔ REENCARNAR</button>
+  </div>
 
   <script>
   const RACES = [
@@ -110,116 +246,522 @@
   const TRAITS = [
       {id:'ira', name:'Ira Primordial', desc:'En estado crítico, tu poder se multiplica de forma incontrolable. El costo es tu cordura.'}, 
       {id:'instinto', name:'Instinto de Depredador', desc:'Lees el combate antes de que ocurra, a costa de perder tu empatía.'}, 
-      {id:'pacto', name:'Pacto Oscuro', desc:'Algo te otorgó poder que no te pertenecía. Algún día vendrá a cobrarlo con intereses.'}
+      {id:'pacto', name:'Pacto Oscuro', desc:'Algo te otorgó poder que no te pertenecía. Algún día vendrá a cobrarlo con intereses.'},
+      {id:'vacio', name:'Eco del Vacío', desc:'Puedes ignorar el dolor por completo, pero cada vez que lo haces, pierdes recuerdos fundamentales de quién eres.'}
   ];
 
-  let state = { turn:0, step: 0, char: { name:'', race:'', gender:0, appearance:'', darkOrigin:'', trait:'', lastMemory: '', physicalChanges: 'Intacto', injuryTags: [] } };
-  let gameHistory = [];
-  const MASTER_STYLE = "Masterpiece cinematic dark fantasy, Kentaro Miura anatomical detail, Akira Toriyama biological aesthetic. Intense chiaroscuro. ";
+  let state = { 
+      step: 0, 
+      char: { name:'', race:'', appearance:'', darkOrigin:'', trait:'', lastMemory: '', status: 'Intacto. Calma helada', hp: 100, injuries_ui: [], injuries_prompt: [] },
+      images: []
+  };
+  let gameHistory = []; 
+  
+  const MASTER_STYLE = "Masterpiece cinematic dark fantasy, Kentaro Miura anatomical detail, Akira Toriyama biological aesthetic. Intense chiaroscuro. High resolution.";
 
-  function hardReset() { localStorage.clear(); window.location.href = window.location.origin + window.location.pathname; }
-  function logoutPuter() { puter.auth.signOut(); toast("Puter desvinculado."); setTimeout(()=>location.reload(), 1000); }
-  function showScreen(id) { ['screen-splash','screen-creation','screen-portrait','screen-memory','screen-loading','screen-game','screen-death'].forEach(s => document.getElementById(s).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+  function hardReset() { localStorage.clear(); window.location.reload(); }
+  function showScreen(id) { 
+      ['screen-splash','screen-creation','screen-portrait','screen-memory','screen-loading','screen-game','screen-death','screen-gallery'].forEach(s => {
+          document.getElementById(s).classList.add('hidden');
+          if(s==='screen-gallery') document.getElementById(s).style.display='none';
+      }); 
+      document.getElementById(id).classList.remove('hidden'); 
+      if(id==='screen-gallery') {
+          document.getElementById(id).style.display='flex';
+          document.getElementById(id).style.flexDirection='column';
+      }
+      
+      if(id==='screen-game' || id==='screen-death') {
+          document.getElementById('btnGallery').classList.remove('hidden');
+          document.getElementById('btnGallery').style.display='block';
+      } else if (id!=='screen-gallery') {
+          document.getElementById('btnGallery').classList.add('hidden');
+          document.getElementById('btnGallery').style.display='none';
+      }
+  }
+
+  function showGallery() {
+      const grid = document.getElementById('galleryGrid');
+      grid.innerHTML = '';
+      state.images.forEach(img => {
+          const div = document.createElement('div');
+          div.style.border = '1px solid var(--gold)';
+          div.style.background = '#000';
+          div.style.padding = '0.5rem';
+          div.innerHTML = `
+            <img src="${img.url}" style="width:100%; aspect-ratio:16/9; object-fit:cover; border-bottom:1px solid var(--blood); margin-bottom:0.5rem; cursor:pointer;" onclick="openLightboxFromGallery('${img.url}')"/>
+            <p style="font-family:var(--font-body); font-style:italic; font-size:0.85rem; color:var(--pale); text-align:center;">${img.desc}</p>
+          `;
+          grid.appendChild(div);
+      });
+      // Store current screen before opening gallery
+      if(!state.lastScreen) state.lastScreen = document.querySelector('.screen-overlay:not(.hidden)').id;
+      if (state.lastScreen === 'screen-gallery') state.lastScreen = 'screen-game'; // fallback
+      showScreen('screen-gallery');
+      document.getElementById('btnGallery').classList.add('hidden');
+      document.getElementById('btnGallery').style.display='none';
+  }
+
+  function closeGallery() {
+      showScreen(state.lastScreen || 'screen-game');
+  }
+
+  function openLightboxFromGallery(url) {
+      document.getElementById('lightbox-img').src = url;
+      document.getElementById('screen-lightbox').classList.add('active');
+  }
   function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.style.opacity = 1; setTimeout(()=>t.style.opacity=0, 2500); }
+  function sanitize(str) { return str ? str.replace(/[()\[\]]/g, '') : ''; }
 
   function renderStep() {
     const titles = ["¿Cómo te llaman?", "Tu linaje", "Tu forma y sombra", "Tu don maldito", "Veredicto"];
     document.getElementById('crTitle').textContent = titles[state.step];
     const body = document.getElementById('crBody'); body.innerHTML = '';
+    
     if(state.step===0) body.innerHTML = `<input type="text" class="epic-input" id="iName" value="${state.char.name}" placeholder="Nombre...">`;
     if(state.step===1) {
         body.innerHTML = `<div class="race-grid">` + RACES.map(r => `<div class="race-card ${state.char.race===r.id?'selected':''}" onclick="state.char.race='${r.id}';renderStep()"><span style="font-size:1.4rem; display:block; margin-bottom:0.3rem">${r.icon}</span><b>${r.name}</b><br><small style="color:#6a5050; font-style:italic">${r.desc}</small></div>`).join('') + `</div>`;
     }
-    if(state.step===2) body.innerHTML = `<textarea class="epic-textarea" id="iApp" rows="3" placeholder="Apariencia (piel, ojos, marcas)...">${state.char.appearance}</textarea><textarea class="epic-textarea" id="iOri" rows="3" placeholder="Origen oscuro...">${state.char.darkOrigin}</textarea>`;
-    if(state.step===3) TRAITS.forEach(t => body.innerHTML += `<div class="trait-card ${state.char.trait===t.id?'selected':''}" style="margin-bottom:0.7rem" onclick="state.char.trait='${t.id}';renderStep()"><b>${t.name}</b><br><small style="color:#6a5050; font-style:italic">${t.desc}</small></div>`);
+    if(state.step===2) {
+        body.innerHTML = `<textarea class="epic-textarea" id="iApp" rows="3" placeholder="Apariencia (piel, ojos, marcas)...">${state.char.appearance}</textarea><textarea class="epic-textarea" id="iOri" rows="3" placeholder="Origen oscuro...">${state.char.darkOrigin}</textarea>`;
+    }
+    if(state.step===3) {
+        TRAITS.forEach(t => body.innerHTML += `<div class="trait-card ${state.char.trait===t.id?'selected':''}" style="margin-bottom:0.7rem" onclick="state.char.trait='${t.id}';renderStep()"><b>${t.name}</b><br><small style="color:#6a5050; font-style:italic">${t.desc}</small></div>`);
+    }
     if(state.step===4) {
         const r = RACES.find(x=>x.id===state.char.race);
         const t = TRAITS.find(x=>x.id===state.char.trait);
         body.innerHTML = `<div style="background:#0d0404; padding:1.2rem; border:1px solid #1f0f0f; line-height:1.6"><p><b>Nombre:</b> ${state.char.name}</p><p><b>Linaje:</b> ${r?.name}</p><p><b>Don:</b> ${t?.name}</p></div>`;
         document.getElementById('btnNext').textContent = "Generar Retrato ⚔";
-    } else document.getElementById('btnNext').textContent = "Continuar";
+    } else {
+        document.getElementById('btnNext').textContent = "Continuar";
+    }
   }
 
-  document.getElementById('btnNext').onclick = () => { if(state.step===0) state.char.name = document.getElementById('iName').value.trim(); if(state.step===2) { state.char.appearance = document.getElementById('iApp').value.trim(); state.char.darkOrigin = document.getElementById('iOri').value.trim(); } if(state.step < 4) { state.step++; renderStep(); } else generatePortrait(); };
+  document.getElementById('btnNext').onclick = () => { 
+    if(state.step===0) state.char.name = document.getElementById('iName').value.trim() || 'Héroe sin nombre'; 
+    if(state.step===2) { 
+        state.char.appearance = document.getElementById('iApp').value.trim() || 'Humanoide vestido con harapos y sin rasgos destacados';
+        state.char.darkOrigin = document.getElementById('iOri').value.trim() || 'Un pasado envuelto en misterio y dolor constante';
+    }
+    if(state.step < 4) { state.step++; renderStep(); } else generatePortrait(); 
+  };
   document.getElementById('btnBack').onclick = () => { if(state.step>0) { state.step--; renderStep(); } };
 
   async function generatePortrait() {
     showScreen('screen-portrait');
-    const loader = document.getElementById('portraitLoader'); const img = document.getElementById('portraitImg'); 
+    const loader = document.getElementById('portraitLoader'); const img = document.getElementById('portraitImg');
     const btnConfirm = document.getElementById('btnConfirmPortrait'); const btnRegen = document.getElementById('btnRegenerate');
+    const lupa = document.getElementById('lupaPortraitBtn');
     
-    loader.style.display = 'block'; img.style.opacity = '0'; img.src = '';
+    loader.style.display = 'block'; img.style.opacity = '0'; lupa.style.display = 'none';
     btnConfirm.disabled = true; btnRegen.disabled = true;
+    const oldRegenText = btnRegen.textContent;
+    btnRegen.textContent = "Forjando visión...";
 
     const r = RACES.find(x=>x.id===state.char.race);
     const antiHair = (state.char.race==='namekiano' || state.char.race==='majin' || state.char.race==='frio') ? "BALD SMOOTH HEAD, NO HAIR." : "";
-    const p = `${MASTER_STYLE} Full Body Shot. ${state.char.appearance || r?.visual}. ${antiHair} Standing heroically.`;
+    const cleanApp = sanitize(state.char.appearance || r?.visual);
+    const p = `${MASTER_STYLE} Full Body Portrait. ${cleanApp}. ${antiHair} Standing heroically.`;
     
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=512&height=768&model=flux&nologo=true&seed=${Math.floor(Math.random()*999999)}&t=${Date.now()}`;
-    img.src = url;
-    img.onload = () => { loader.style.display='none'; img.style.opacity='1'; btnConfirm.disabled=false; btnRegen.disabled=false; state.char.portraitUrl = url; };
-    img.onerror = () => { loader.style.display='none'; btnRegen.disabled=false; toast("Reintentando..."); generatePortrait(); };
+    img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=512&height=768&model=flux&nologo=true&seed=${Math.floor(Math.random()*999999)}`;
+    img.onload = () => { loader.style.display='none'; img.style.opacity='1'; lupa.style.display='flex'; btnConfirm.disabled=false; btnRegen.disabled=false; btnRegen.textContent = oldRegenText; };
+    img.onerror = () => { loader.style.display='none'; toast("La visión se nubló. Inténtalo de nuevo."); btnRegen.disabled=false; btnRegen.textContent = oldRegenText; };
   }
 
-  function confirmMemory() { state.char.lastMemory = document.getElementById('iMemory').value.trim(); showScreen('screen-loading'); gameTurn(null); }
+  function confirmMemory() { 
+      state.char.lastMemory = document.getElementById('iMemory').value.trim() || "Un vacío absoluto, los recuerdos se han borrado."; 
+      state.images.push({ url: document.getElementById('portraitImg').src, desc: "Rostro en el tiempo" });
+      showScreen('screen-loading'); 
+      gameTurn(null); 
+  }
   function submitCustomAction() { const val = document.getElementById('iCustomAction').value.trim(); if(!val) return; document.getElementById('iCustomAction').value = ''; gameTurn(val); }
+
+  function extractSection(text, keyRegex) {
+      if (text.startsWith('"') && text.endsWith('"')) {
+          try { text = JSON.parse(text); } catch(e) {}
+      }
+      text = text.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '');
+      text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      text = text.replace(/```[^\n]*\n?/g, '').replace(/```/g, '');
+      text = text.replace(/^#+\s+/gm, ''); 
+      text = text.replace(/^-+\s+/gm, ''); 
+      const nextSections = `(?:\\*\\*)?(?:NARRATIVA|ESTADO|SALUD|HERIDA_UI|HERIDA_PROMPT|IMAGEN|OPCI[OÓ]N 1|OPCI[OÓ]N 2|OPCI[OÓ]N 3|OPCI[OÓ]N 4|OPCI[OÓ]N|MUERTE)(?:\\*\\*)?:`;
+      const regex = new RegExp(`(?:\\*\\*)?${keyRegex}(?:\\*\\*)?:\\s*([\\s\\S]*?)(?=${nextSections}|$)`, 'i');
+      const match = text.match(regex);
+      let result = match ? match[1].trim() : "";
+      return result.replace(new RegExp(`${nextSections}.*$`, 'is'), '').trim();
+  }
 
   async function gameTurn(choice) {
     showScreen('screen-game');
-    const txt = document.getElementById('gameText'); const cCtr = document.getElementById('choices-ctr'); const fLoad = document.getElementById('gameFooterLoader'); const iWrap = document.getElementById('game-image-wrapper');
-    cCtr.innerHTML = ''; fLoad.style.display = 'block'; iWrap.classList.add('hidden'); document.getElementById('customActionCtr').style.display = 'none';
-    txt.innerHTML = '«El Cronista evalúa tu voluntad...»';
-    try {
-        const actionText = choice ? `ACCIÓN JUGADOR: "${choice}"` : `INICIO. Recuerdo: "${state.char.lastMemory}".`;
-        const systemPrompt = `Eres El Cronista del Eclipse (GM Berserk-Style). Voz violenta. ESPAÑOL OBLIGATORIO.
-        JSON ESTRUCTURA: {"narrative":"...", "choices":["...","...","..."], "visual_moment":"...", "status_update":"...", "new_injury_tag":"(ENGLISH descriptor only if mutilated)", "is_dead": false}
-        CONTEXTO: ${state.char.name}, ${state.char.race}. Aspecto: ${state.char.appearance}. Heridas: ${state.char.injuryTags.join(', ')}.
-        ${actionText}`;
-        
-        // VOLVEMOS A PUTER PARA EL TEXTO (MAYOR FIABILIDAD JSON)
-        const resp = await puter.ai.chat(systemPrompt);
-        let raw = typeof resp === 'string' ? resp : (resp.message?.content || JSON.stringify(resp));
-        const start = raw.indexOf('{'); const end = raw.lastIndexOf('}');
-        const res = JSON.parse(raw.substring(start, end + 1));
-        
-        if(res.new_injury_tag) state.char.injuryTags.push(res.new_injury_tag);
-        state.char.physicalChanges = res.status_update || state.char.physicalChanges;
-        gameHistory.push({r:choice||'Inicio', n:res.narrative});
-        if(gameHistory.length > 4) gameHistory.shift();
-        if(res.is_dead) { handleDeath(res.narrative, res.visual_moment); return; }
+    const txt = document.getElementById('gameText'); const cCtr = document.getElementById('choices-ctr'); 
+    const fLoad = document.getElementById('gameFooterLoader'); const iWrap = document.getElementById('game-image-wrapper');
+    
+    cCtr.innerHTML = ''; fLoad.style.display = 'block'; iWrap.classList.add('hidden'); 
+    document.getElementById('customActionCtr').style.display = 'none';
+    txt.innerHTML = '«El Cronista evalúa el flujo del tiempo...»';
+    
+    // Logica de saltos de dificultad y Modos
+    state.char.turn = (state.char.turn || 0) + 1;
+    if (state.char.turn % 10 === 1) state.char.spikesThisDecade = 0;
+    
+    // Evaluar BERSERK de Ira Primordial ANTES de enviar el sistema
+    // Modos y progresiones de Dones Malditos
+    let forcedSpike = null;
+    if (choice && choice.startsWith('/')) {
+        const cmd = choice.trim().toLowerCase();
+        if (cmd === '/berserk') {
+            state.char.trait = 'ira'; state.char.isBerserk = true; state.char.isBerserkPermanent = true;
+            choice = "Siento que la furia incontrolable destruye mi mente y pierdo el control total de mis actos en una masacre.";
+            forcedSpike = 'ira';
+        } else if (cmd === '/feral') {
+            state.char.trait = 'instinto'; state.char.isFeral = true; state.char.humanityLoss = 3; state.char.feralTurns = 99;
+            choice = "Abandono por completo toda lógica. Mi humanidad se apaga y me vuelvo un depredador feral absoluto en esta escena.";
+            forcedSpike = 'instinto';
+        } else if (cmd === '/pacto') {
+            state.char.trait = 'pacto';
+            choice = "Intento escapar pero la entidad oscura de mi pacto aparece físicamente ante mí para obligarme a pagar con sangre y dolor ahora mismo.";
+            forcedSpike = 'pacto';
+        } else if (cmd === '/vacio') {
+            state.char.trait = 'vacio';
+            choice = "Un ataque verdaderamente brutal me alcanza, y el ecos del vacío destruye mi último recuerdo para soportar el dolor físico.";
+            forcedSpike = 'vacio';
+        }
+    }
 
-        iWrap.classList.remove('hidden'); document.getElementById('gameImageLoader').style.display='block'; document.getElementById('gameImage').style.opacity='0';
-        const injuries = state.char.injuryTags.length ? "MANDATORY: " + state.char.injuryTags.join(', ') + ". " : "";
-        const antiHair = (state.char.race==='namekiano' || state.char.race==='majin' || state.char.race==='frio') ? "BALD HEAD, NO HAIR." : "";
-        const imgP = `${MASTER_STYLE} ${injuries} THE SCENE: ${res.visual_moment}. CHARACTER: ${state.char.appearance}. ${antiHair} CINEMATIC ACTION.`;
+    if (state.char.trait === 'ira') {
+        if (state.char.hp <= 35 || state.char.isBerserkPermanent) {
+            state.char.isBerserk = true;
+            state.char.iraTurns = (state.char.iraTurns || 0) + 1;
+            if (state.char.iraTurns >= 4) {
+                state.char.isBerserkPermanent = true;
+            }
+        } else {
+            state.char.isBerserk = false;
+            state.char.iraTurns = 0;
+        }
+    } else if (state.char.trait === 'instinto') {
+        if (state.char.isFeral) {
+            state.char.feralTurns = (state.char.feralTurns || 0) - 1;
+            if (state.char.feralTurns <= 0) {
+                state.char.isFeral = false; // Recupera la conciencia
+                state.char.humanityLoss = 0;
+            }
+        }
+    }
+
+    let isSpike = false;
+    let spikeData = null;
+    
+    const TRAIT_SPIKES = {
+        'ira': { ui: "La sangre hierve... tu mente se fractura...", prompt: "SALTO DE DIFICULTAD RELACIONADO A 'IRA PRIMORDIAL': El personaje es consumido por una furia irracional, falta de escrúpulos, sed de sangre incontrolable, o su propio cansancio de la furia le traiciona. Las consecuencias deben ser horribles." },
+        'instinto': { ui: "La bestia despierta... Eres la presa.", prompt: "SALTO DE DIFICULTAD RELACIONADO A 'INSTINTO DE DEPREDADOR': Una amenaza abrumable y depredadora ataca. Hay una sobrecarga sensorial o el instinto traiciona a su lógica. El personaje predice el evento con precisión, pero el coste es su humanidad emocional." },
+        'pacto': { ui: "", prompt: "SALTO DE DIFICULTAD RELACIONADO A 'PACTO OSCURO': La entidad, demonio, o fuente de su poder (ej: voces de almas asimiladas) viene a cobrar su deuda. Exige un peaje doloroso: un sacrificio atroz, sangre, o hacerle perder algo valioso. Las opciones deben permitir: obedecer, rebelarse contra sus propios demonios o heraldos, o intentar evadir a un coste mayor." },
+        'vacio': { ui: "Sientes cómo un fragmento de tu alma se desvanece...", prompt: "SALTO DE DIFICULTAD RELACIONADO A 'ECO DEL VACÍO': El daño inminente es letal y atroz. Sin embargo, el personaje de forma pasiva ignora por completo el dolor físico. A cambio, el precio narrativo es devastador: arráncale NARRATIVAMENTE un recuerdo crucial (un ser amado, su propósito, su nombre, su origen). NO asumas que el jugador o tú olvidan el dato internamente, pero EN LA HISTORIA, descríbele experimentando cómo el recuerdo se borra sin dejar rastro en su mente para siempre." }
+    };
+
+    if (forcedSpike) {
+        isSpike = true;
+        spikeData = TRAIT_SPIKES[forcedSpike];
+    } else if (state.char.turn >= 5) {
+        const canSpike = (state.char.turn - (state.char.lastSpike || -2) > 1) && ((state.char.spikesThisDecade || 0) < 2);
+        if (canSpike) {
+            if (Math.random() < 0.25 || (state.char.turn % 10 === 9 && state.char.spikesThisDecade === 0)) {
+                isSpike = true;
+                state.char.lastSpike = state.char.turn;
+                state.char.spikesThisDecade = (state.char.spikesThisDecade || 0) + 1;
+                spikeData = TRAIT_SPIKES[state.char.trait] || { ui: "Sientes un frío antinatural...", prompt: "SALTO DE DIFICULTAD. En este turno la amenaza aumenta drásticamente. Presenta un evento letal." };
+            }
+        }
+    }
+
+    const contextHistory = gameHistory.map((h, i) => `Turno -${gameHistory.length - i}: Acción: "${h.a}" | Resultado: "${h.c}"`).join('\n');
+    
+    let actionText = choice 
+        ? `ACCIÓN DEL JUGADOR: "${choice}"` 
+        : `INICIO DE CRÓNICA: Integra sutilmente mi Origen y mi Último Recuerdo y preséntame el primer conflicto inminente en la escena actual.`;
+
+    const spikeElement = document.getElementById('spikeWarning');
+    let isPactToll = false;
+    let isVoidMemory = false;
+    if (isSpike && spikeData) {
+        actionText += `\n\n[DIRECTRIZ DEL SISTEMA: ${spikeData.prompt}]`;
+        if (state.char.trait === 'ira') {
+            state.char.isBerserk = true;
+            state.char.iraTurns = (state.char.iraTurns || 0) + 1;
+        } else if (state.char.trait === 'instinto') {
+            state.char.humanityLoss = (state.char.humanityLoss || 0) + 1;
+            if (state.char.humanityLoss >= 3) {
+                state.char.isFeral = true;
+                state.char.feralTurns = 3;
+            }
+        } else if (state.char.trait === 'pacto') {
+            isPactToll = true;
+        } else if (state.char.trait === 'vacio') {
+            isVoidMemory = true;
+        }
+        if (spikeData.ui) {
+            spikeElement.textContent = spikeData.ui;
+            spikeElement.style.display = 'block';
+            document.body.classList.add('blood-flash');
+            setTimeout(() => { document.body.classList.remove('blood-flash'); spikeElement.style.display = 'none'; }, 4000);
+        } else {
+            spikeElement.style.display = 'none';
+        }
+    } else {
+        spikeElement.style.display = 'none';
+    }
+
+    if (state.char.isBerserk) {
+        if (state.char.isBerserkPermanent) {
+            state.char.iraTurns = state.char.iraTurns + 1;
+        }
+    }
+
+    // PROMPT BLINDADO Y DISCIPLINADO
+    let systemPrompt = `Eres El Cronista del Eclipse (Dark Fantasy GM, estilo Berserk y Dark Souls). 
+Tu narrativa es CORTA, CRUDA Y BRUTAL. Escribe de forma natural y con sentido. NO inventes palabras raras ni uses metáforas confusas.
+Narra la acción en segunda persona o tercera. NO INCLUYAS reflexiones sobre la escritura, NO justifiques tus decisiones y NO uses etiquetas de pensamiento. Da SOLO el texto final finalizado, directamente usando las cabeceras solicitadas, sin texto previo ni posterior. ESTÁ TOTALMENTE PROHIBIDO "PENSAR EN VOZ ALTA" O MOSTRAR RAZONAMIENTOS.
+REGLA DE ORO: NO DILATES LA ESCENA. Describe la acción en MÁXIMO 1 O 2 PÁRRAFOS cortos. Ve al grano, avanza la historia. Responde SIEMPRE a la ACCIÓN DEL JUGADOR de manera directa.
+REGLA DE IDIOMA: Todo el texto generado DEBE estar ESTRICTAMENTE en ESPAÑOL natural y con buena gramática, excepto HERIDA_PROMPT e IMAGEN que deben estar en INGLÉS.
+
+MUY IMPORTANTE: NO DEBES escribir ABSOLUTAMENTE NADA de texto fuera de las etiquetas de encabezado. NADA. Tu respuesta debe empezar directamente por "NARRATIVA:" y acabar en el booleano de "MUERTE:". NUNCA MATES AL PERSONAJE (MUERTE: TRUE) A MENOS QUE SU SALUD LLEGUE A 0. VOVERSE BESTIA, RECIBIR DAÑO O PERDER LA RAZÓN NO ES UNA MUERTE INSTANTÁNEA.
+
+GESTIÓN DE SALUD (HP):
+- Administra la salud del jugador de 0 a 100 basándote en la narrativa.
+- Si sufre daño, réstale HP. Si es daño mortal o muere, HP llegará a 0. (SOLO PON MUERTE: TRUE SI HP LLEGA A 0).
+- Puede curarse si realiza acciones que narrativamente lo justifiquen.`;
+
+    if (state.char.isBerserk) {
+        systemPrompt += `\n\n[ALERTA DE SISTEMA - BERSERK ACTIVADO: Por su 'Ira Primordial' (HP bajo o extendido), el personaje ha perdido la cordura y no controla sus acciones. La NARRATIVA DEBE reflejar masacre ciega, sangre y destrucción irracional. LAS OPCIONES (OPCION 1, OPCION 2, OPCION 3) DEBEN TENDER A LA ULTRAVIOLENCIA, EL CAOS O SER SUICIDAS. Puede llegar a mutilar u herir fatalmente a sus aliados.]`;
+        if (state.char.isBerserkPermanent) {
+            systemPrompt += `\n[EFECTO PERMANENTE: Su mente se ha roto por completo sin retorno. Es una bestia irracional.]`;
+        }
+    } else if (state.char.isFeral) {
+        systemPrompt += `\n\n[ALERTA DE SISTEMA - ESTADO FERAL: El personaje ha perdido la capacidad de pensar racionalmente al abusar del Instinto. Ahora es salvaje sin empatía. Las OPCIONES (OPCION 1, OPCION 2, OPCION 3) DEBEN ser reacciones animales simples (huir, morder, ocultarse), sin diálogo complejo ni estrategia.]`;
+    }
+
+    systemPrompt += `\n
+SISTEMA DE SUERTE Y CONSECUENCIAS:
+- Evalúa la ambición de la ACCIÓN DEL JUGADOR. Si intenta algo muy positivo, adquirir mucho poder, curarse mucho o salir ileso de algo mortal, aplica una "tirada oculta" donde fracasará a menudo o el costo será devastador.
+- Si la intención es sacrificar algo suyo, recibir daño, o tomar una decisión perjudicial para sí mismo, SIEMPRE se le concederá. Castiga los errores tácticos.
+
+LORE Y TRAUMAS:
+- Conecta temáticamente y de forma sutil los escenarios, pesadillas y enemigos con su "Origen Oscuro" y su "Último Recuerdo".
+
+REGLA ABSOLUTA E INQUEBRANTABLE: DEBES RESPONDER ÚNICA Y EXCLUSIVAMENTE CON LOS SIGUIENTES ENCABEZADOS EN MAYÚSCULA. NINGÚN TEXTO FUERA DE ELLOS. NO uses formato markdown (**, #), solo el texto pedido.
+
+NARRATIVA: (Acción directa y fluida. Sin florituras. Reacciona a la decisión del jugador o al desenlace de su suerte. En español)
+ESTADO: (MÁXIMO 5 PALABRAS. Ej: Sangrando. Furia desatada. EN ESPAÑOL)
+SALUD: (SOLO UN NÚMERO entero del 0 al 100 indicando la vida restante. Ej: 85)
+HERIDA_UI: (La mutilación sufrida ESTE TURNO, EN ESPAÑOL. Si no hay daño grave, escribe NADA)
+HERIDA_PROMPT: (La misma mutilación en INGLÉS. Si no hay daño, escribe NADA)
+IMAGEN: (Prompt en INGLÉS. DEBE ser una FOTO FIJA 100% FIEL A LA NARRATIVA ACTUAL. Describe EXACTAMENTE las acciones que ocurren, ubicaciones y a los enemigos. Solo la acción cruda visual.)
+OPCION 1: (Opción letal y directa, en español)
+OPCION 2: (Opción letal y directa, en español)
+OPCION 3: (Opción letal y directa, en español)
+MUERTE: (FALSE si sigue vivo, TRUE si ha muerto irremediablemente porque la SALUD llegó a 0)
+
+--- DATOS DEL JUGADOR ---
+Nombre: ${state.char.name}
+Salud Actual: ${state.char.hp}/100
+Apariencia y Mutilaciones: ${state.char.appearance}. ${state.char.injuries_prompt.join(', ')}
+Origen Oscuro: ${state.char.darkOrigin}
+Último Recuerdo: ${state.char.lastMemory}
+--- HISTORIAL DE COMBATE ---
+${contextHistory}
+------------------------
+${actionText}`;
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout para prevenir cuelgues
         
-        const gi = document.getElementById('gameImage'); 
-        gi.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(imgP)}?width=896&height=504&model=flux&nologo=true&seed=${Math.floor(Math.random()*999999)}&t=${Date.now()}`;
-        gi.onload = () => { gi.style.opacity='1'; document.getElementById('gameImageLoader').style.display='none'; };
+        const response = await fetch('https://text.pollinations.ai/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: actionText }],
+                model: 'claude',
+                jsonMode: false,
+                seed: Math.floor(Math.random() * 999999)
+            }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if(!response.ok) throw new Error("API Connection Failed");
+        let raw = await response.text();
+        
+        let narr = extractSection(raw, 'NARRATIVA');
+        let status = extractSection(raw, 'ESTADO');
+        let salud = extractSection(raw, 'SALUD');
+        let heridaUi = extractSection(raw, 'HERIDA_UI');
+        let heridaPrompt = extractSection(raw, 'HERIDA_PROMPT');
+        let imgDesc = extractSection(raw, 'IMAGEN');
+        let op1 = extractSection(raw, 'OPCI[OÓ]N 1');
+        let op2 = extractSection(raw, 'OPCI[OÓ]N 2');
+        let op3 = extractSection(raw, 'OPCI[OÓ]N 3');
+        let isDeadStr = extractSection(raw, 'MUERTE');
+        
+        if(salud) {
+            let m = salud.match(/\d+/);
+            if (m) {
+                state.char.hp = Math.max(0, Math.min(100, parseInt(m[0])));
+            }
+        }
+        
+        if(state.char.hp <= 0) {
+            isDeadStr = 'TRUE';
+        } else if (isDeadStr && isDeadStr.toUpperCase().includes('TRUE') && state.char.hp > 0) {
+            // El LLM ha dicho MUERTE por error o exageración, pero no bajó los HP a 0
+            isDeadStr = 'FALSE'; 
+        }
+
+        // Procesar Mutilaciones Anatómicas (UI)
+        if(heridaUi && heridaUi.toUpperCase() !== 'NADA' && heridaUi.length > 2 && !heridaUi.toLowerCase().includes('ningun')) {
+            if(!state.char.injuries_ui.includes(heridaUi)) state.char.injuries_ui.push(heridaUi);
+        }
+        // Procesar Mutilaciones Anatómicas (PROMPT)
+        if(heridaPrompt && heridaPrompt.toUpperCase() !== 'NADA' && heridaPrompt.length > 2 && !heridaPrompt.toLowerCase().includes('none')) {
+            if(!state.char.injuries_prompt.includes(heridaPrompt)) state.char.injuries_prompt.push(heridaPrompt);
+        }
+        
+        // Limpiamos el estado por si la IA ignoró la regla de las 5 palabras (cortamos a unos 40 caracteres)
+        state.char.status = status.length > 40 ? status.substring(0, 40) + "..." : status;
+
+        gameHistory.push({ a: choice || 'Inicio', c: narr.substring(0, 80) + "..." });
+        if(gameHistory.length > 5) gameHistory.shift();
+
+        if(isDeadStr.toUpperCase() === 'TRUE') { 
+            handleDeath(narr, imgDesc); 
+            return; 
+        }
+
+        iWrap.classList.remove('hidden'); 
+        document.getElementById('gameImageLoader').style.display='block'; 
+        
+        document.getElementById('hpValue').textContent = state.char.hp;
+        document.getElementById('hpBar').style.width = state.char.hp + '%';
+
+        const gi = document.getElementById('gameImage');
+        gi.style.opacity='0';
+        
+        const antiHair = (state.char.race==='namekiano' || state.char.race==='majin' || state.char.race==='frio') ? "BALD HEAD, NO HAIR." : "";
+        const anatomyPrompt = state.char.injuries_prompt.length ? `[!!CRITICAL ALERT!! THIS CHARACTER IS SEVERELY MUTILATED: ${state.char.injuries_prompt.join(', ')}. DEPICT THIS EXACTLY! ALWAYS REDRAW THEM MISSING THOSE BODY PARTS!]` : "Intact body";
+        const cleanImgDesc = sanitize(imgDesc);
+        
+        const imgP = `${MASTER_STYLE} DYNAMIC ACTION SCENE 100% FAITHFUL TO THE STORY: ${cleanImgDesc}. Show EXACTLY the enemies, environments and actions described. (MAIN HERO VISUAL REFERENCE: ${state.char.appearance}. ${anatomyPrompt}. ${antiHair}). EPIC CRUELTY AND VIOLENCE!`;
+        
+        gi.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(imgP)}?width=896&height=504&model=flux&nologo=true&seed=${Math.floor(Math.random()*999999)}`;
+        
+        gi.onload = () => { 
+            gi.style.opacity='1'; 
+            document.getElementById('gameImageLoader').style.display='none'; 
+            state.images.push({ url: gi.src, desc: `Turno ${gameHistory.length}: ${state.char.status}` });
+        };
+        gi.onerror = () => { document.getElementById('gameImageLoader').style.display='none'; toast("Visión oscurecida."); };
 
         document.getElementById('gameCharName').textContent = state.char.name;
         document.getElementById('gameRace').textContent = RACES.find(r=>r.id===state.char.race)?.name;
-        document.getElementById('gamePhysicalStatus').textContent = "Estado: " + state.char.physicalChanges;
-        document.getElementById('injury-log').textContent = state.char.injuryTags.length ? "Heridas: " + state.char.injuryTags.join(' · ') : "";
         
-        txt.innerHTML = ''; typewriter(txt, res.narrative, 15, () => {
-            res.choices.forEach(c => { const b = document.createElement('button'); b.className = 'choice-btn'; b.textContent = c; b.onclick = () => gameTurn(c); cCtr.appendChild(b); });
-            document.getElementById('customActionCtr').style.display = 'block';
+        document.getElementById('gameStatus').textContent = "Estado: " + state.char.status + (state.char.injuries_ui.length ? " | Heridas: " + state.char.injuries_ui.join(', ') : "");
+        
+        txt.className = 'cronista-text';
+        if (state.char.isBerserk || state.char.isFeral) {
+            txt.classList.add('text-tremble');
+        } else if (isPactToll) {
+            txt.classList.add('text-pact');
+        } else if (isVoidMemory) {
+            txt.classList.add('text-void');
+        }
+
+        txt.innerHTML = ''; typewriter(txt, narr, 15, () => {
+            const validOps = [op1, op2, op3].filter(o => o && o.length > 2);
+            validOps.forEach(c => { 
+                const b = document.createElement('button'); b.className = 'choice-btn'; 
+                b.textContent = c; b.onclick = () => gameTurn(c); 
+                cCtr.appendChild(b); 
+            });
+            if (state.char.isBerserk || state.char.isFeral || isPactToll) {
+                document.getElementById('customActionCtr').style.display = 'none';
+                // Si la IA falla en dar opciones, damos una por defecto para no bloquear el juego
+                if (validOps.length === 0) {
+                    const b = document.createElement('button'); b.className = 'choice-btn'; 
+                    b.style.borderColor = 'var(--blood)'; b.style.color = 'var(--blood)';
+                    b.textContent = "Me consumo en la oscuridad absoluta..."; 
+                    b.onclick = () => gameTurn("Me consumo en mi aflicción..."); 
+                    cCtr.appendChild(b); 
+                }
+            } else {
+                document.getElementById('customActionCtr').style.display = 'block';
+            }
             fLoad.style.display = 'none';
         });
-    } catch(e) { fLoad.style.display='none'; txt.innerHTML = "Falla de red o filtros. Prueba otra acción."; document.getElementById('customActionCtr').style.display = 'block'; }
+    } catch(e) { 
+        fLoad.style.display='none'; 
+        txt.innerHTML = "El nexo se ha fracturado. Ordena tu voluntad de nuevo."; 
+        const retryBtn = document.createElement('button');
+        retryBtn.className = 'choice-btn';
+        retryBtn.style.borderColor = 'var(--ember)';
+        retryBtn.textContent = "Volver a intentar...";
+        retryBtn.onclick = () => gameTurn(choice);
+        cCtr.appendChild(retryBtn);
+        if(!(state.char.isBerserk || state.char.isFeral || isPactToll)) document.getElementById('customActionCtr').style.display = 'block'; 
+    }
   }
 
-  function handleDeath(n, s) {
+  function handleDeath(narrative, imgContext) {
       showScreen('screen-death');
-      document.getElementById('deathText').textContent = n;
-      const imgP = `${MASTER_STYLE} THE END: ${s}. Defeated corpse of ${state.char.appearance}.`;
-      document.getElementById('deathImage').src = `https://image.pollinations.ai/prompt/${encodeURIComponent(imgP)}?width=512&height=512&model=flux&nologo=true`;
+      // Aseguramos quitar los tags ocultos si los hubiera
+      let cleanNarrative = narrative.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+      document.getElementById('deathText').textContent = cleanNarrative;
+      const cleanImgDesc = sanitize(imgContext);
+      const anatomyPrompt = state.char.injuries_prompt.length ? `[CRITICAL ANATOMY RULE: ${state.char.injuries_prompt.join(', ')} MUST BE VISIBLE]` : "";
+      const antiHair = (state.char.race==='namekiano' || state.char.race==='majin' || state.char.race==='frio') ? "BALD HEAD, NO HAIR." : "";
+      const imgP = `${MASTER_STYLE} TRAGIC ENDING SHOT 100% FAITHFUL TO THE SCENE: ${cleanImgDesc}. DEFEATED, DEAD CORPSE LYING ON THE GROUND. BLOODY REMAINS. (FEATURING THE DEFEATED DEAD CHARACTER: ${state.char.appearance}. CONDITION: ${anatomyPrompt}. ${antiHair}). GRIM, DARK AND BLEAK ATMOSPHERE.`;
+      
+      const dImg = document.getElementById('deathImage');
+      dImg.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(imgP)}?width=896&height=504&model=flux&nologo=true`;
+      dImg.onload = () => {
+          state.images.push({ url: dImg.src, desc: "El fin de la crónica" });
+      };
   }
 
-  function typewriter(el, text, speed, onDone) { let i = 0; const iv = setInterval(() => { if (i < text.length) { el.appendChild(document.createTextNode(text[i])); i++; } else { clearInterval(iv); if(onDone) onDone(); } }, speed); }
-  function openLightbox() { document.getElementById('lightbox-img').src = document.getElementById('gameImage').src; document.getElementById('screen-lightbox').classList.add('active'); }
-  window.onload = () => { setTimeout(() => document.getElementById('loader').classList.add('hidden'), 600); const eb = document.getElementById('embers'); for(let i=0; i<10; i++) { const e = document.createElement('div'); e.className='ember'; e.style.setProperty('--x',Math.random()*100+'vw'); e.style.setProperty('--dur',Math.random()*5+5+'s'); eb.appendChild(e); } };
+  function typewriter(el, text, speed, onDone) { 
+      let i = 0; 
+      const iv = setInterval(() => { 
+          if (i < text.length) { el.appendChild(document.createTextNode(text[i])); i++; } 
+          else { clearInterval(iv); if(onDone) onDone(); } 
+      }, speed); 
+  }
+  
+  function openLightbox() { 
+      document.getElementById('lightbox-img').src = document.getElementById('gameImage').src; 
+      document.getElementById('screen-lightbox').classList.add('active'); 
+  }
+
+  function openPortraitLightbox() {
+      document.getElementById('lightbox-img').src = document.getElementById('portraitImg').src;
+      document.getElementById('screen-lightbox').classList.add('active');
+  }
+
+  function openDeathLightbox() {
+      document.getElementById('lightbox-img').src = document.getElementById('deathImage').src;
+      document.getElementById('screen-lightbox').classList.add('active');
+  }
+  
+  window.onload = () => { 
+      setTimeout(() => document.getElementById('loader').classList.add('hidden'), 600); 
+      const eb = document.getElementById('embers'); 
+      for(let i=0; i<10; i++) { 
+          const e = document.createElement('div'); e.className='ember'; 
+          e.style.setProperty('--x',Math.random()*100+'vw'); 
+          e.style.setProperty('--dur',Math.random()*5+5+'s'); 
+          eb.appendChild(e); 
+      } 
+  };
   </script>
 </body>
 </html>
