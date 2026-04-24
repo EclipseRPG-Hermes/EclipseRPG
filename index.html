@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#8b0000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Eclipse RPG" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Eclipse RPG</title>
+  <script src="https://js.puter.com/v2/"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+    :root { --blood: #8b0000; --ember: #c0392b; --gold: #a07830; --void: #0a0a0a; --pale: #c8beb0; --white: #f0e8e0; --panel: #0d0404; --border2: #2a1515; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; min-height: 100%; background: var(--void); color: var(--pale); font-family: 'Crimson Pro', Georgia, serif; overflow-y: auto; -webkit-font-smoothing: antialiased; }
+    .bg { position: fixed; inset: 0; z-index: -2; background: radial-gradient(ellipse at 50% 110%, #1a0505 0%, #0a0a0a 65%); }
+    .scanlines { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); }
+    .embers { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+    .ember { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: var(--ember); animation: rise var(--dur) ease-in infinite; left: var(--x); bottom: -10px; opacity: 0; }
+    @keyframes rise { 0%{transform:translateY(0);opacity:0} 10%{opacity:.8} 100%{transform:translateY(-100vh);opacity:0} }
+    #loader { position: fixed; inset: 0; z-index: 200; background: var(--void); display: flex; align-items: center; justify-content: center; transition: opacity 0.8s; }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+    .loader-ring { width: 40px; height: 40px; border: 2px solid #2a1010; border-top-color: var(--blood); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn { position: relative; padding: 0.8rem 1.5rem; background: transparent; border: 1px solid var(--blood); color: var(--white); font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: 0.3s; margin-bottom: 0.5rem; display: inline-block; text-align: center; }
+    .btn:hover { background: var(--blood); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-ghost { border-color: var(--border2); color: #6a5050; }
+    .screen-overlay { width: 100%; min-height: 100vh; display: flex; flex-direction: column; background: rgba(5,2,2,0.98); padding-bottom: 40px; }
+    .screen-overlay.hidden { display: none !important; }
+    .cr-header { padding: 1.5rem; border-bottom: 1px solid #1a0808; text-align: center; }
+    .cr-title { font-family: 'Cinzel Decorative', serif; font-size: 1.1rem; color: var(--gold); letter-spacing: 0.1em; }
+    .cr-body { flex: 1; padding: 1.5rem; max-width: 600px; margin: 0 auto; width: 100%; }
+    .cr-footer { padding: 1rem; display: flex; gap: 0.5rem; max-width: 600px; margin: 0 auto; width: 100%; }
+    .epic-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid #2a1515; color: var(--white); font-family: 'Cinzel Decorative', serif; font-size: 1.3rem; padding: 0.5rem; text-align: center; outline: none; margin-bottom: 2rem; }
+    .race-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .race-card, .trait-card, .gender-btn { border: 1px solid #1f0f0f; padding: 1rem; background: var(--panel); cursor: pointer; text-align: left; transition: 0.2s; }
+    .race-card.selected, .trait-card.selected, .gender-btn.selected { border-color: var(--blood); background: #150505; }
+    .epic-textarea { width: 100%; background: #0d0404; border: 1px solid #1f0f0f; color: var(--pale); padding: 0.8rem; font-family: 'Crimson Pro', serif; resize: none; outline: none; margin-bottom: 1rem; line-height: 1.6; }
+    .portrait-frame { width: 100%; aspect-ratio: 2/3; border: 1px solid var(--border2); background: #000; position: relative; margin-bottom: 1.5rem; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .portrait-img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s; }
+    #game-image-wrapper { width: 100%; aspect-ratio: 16/9; margin-bottom: 1.5rem; border: 1px solid var(--border); background: var(--panel); position: relative; display: flex; align-items: center; justify-content: center; min-height: 180px; overflow: hidden; }
+    .game-image { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: 0.5s; }
+    .lupa-btn { position: absolute; bottom: 10px; right: 10px; width: 34px; height: 34px; background: rgba(0,0,0,0.7); border: 1px solid var(--blood); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+    .cronista-text { font-family: 'Crimson Pro', serif; font-size: 1.1rem; line-height: 1.8; color: var(--pale); white-space: pre-wrap; margin-bottom: 2rem; }
+    .choice-btn { width: 100%; text-align: left; padding: 1.1rem; font-family: 'Crimson Pro', serif; font-style: italic; font-size: 0.95rem; border: 1px solid #2a1515; background: #0d0404; color: var(--pale); cursor: pointer; margin-bottom: 0.8rem; }
+    .custom-action-ctr { margin-top: 1.5rem; border-top: 1px dashed #2a1515; padding-top: 1.5rem; }
+    .custom-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--gold); color: #fff; font-family: 'Crimson Pro', serif; font-size: 1rem; padding: 0.5rem 0; outline: none; margin-bottom: 0.5rem; }
+    .status-badge { font-size: 0.7rem; color: var(--gold); border: 1px solid #2a1515; padding: 0.4rem 0.8rem; border-radius: 4px; display: inline-block; margin-top: 0.8rem; background: #0a0505; font-style: italic; border-left: 3px solid var(--blood); }
+    #injury-log { font-size: 0.65rem; color: #7a3030; margin-top: 0.3rem; font-style: italic; }
+    #screen-lightbox { position: fixed; inset: 0; z-index: 1000; background: #000; display: none; align-items: center; justify-content: center; }
+    #screen-lightbox.active { display: flex; }
+    #lightbox-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--blood); color: #fff; padding: 0.6rem 1.2rem; font-size: 0.8rem; z-index: 2000; opacity: 0; transition: 0.3s; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div id="screen-lightbox" onclick="this.classList.remove('active')"><img src="" id="lightbox-img" /></div>
+  <div id="loader"><div class="loader-ring"></div></div>
+  <div class="bg"></div><div class="scanlines"></div><div class="embers" id="embers"></div><div id="toast"></div>
+
+  <!-- SPLASH -->
+  <div id="screen-splash" class="screen-overlay">
+    <div class="cr-body" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+        <h1 style="font-family:'Cinzel Decorative'; font-size:2.5rem; color:var(--white); margin-bottom:1rem;">ECLIPSE</h1>
+        <p style="font-style:italic; color:var(--gold); margin-bottom:3rem;">v2.3 — El Nexo de Estabilidad</p>
+        <button class="btn" onclick="showScreen('screen-creation'); renderStep();">⚔ Iniciar Nueva Crónica</button>
+        <button class="btn btn-ghost" style="font-size:0.55rem; margin-top:2rem;" onclick="logoutPuter()">Desvincular Puter</button>
+    </div>
+  </div>
+
+  <div id="screen-creation" class="screen-overlay hidden"><div class="cr-header"><div class="cr-title" id="crTitle"></div></div><div class="cr-body" id="crBody"></div><div class="cr-footer"><button class="btn btn-ghost" id="btnBack">Atrás</button><button class="btn" style="flex:1" id="btnNext">Continuar</button></div></div>
+  <div id="screen-portrait" class="screen-overlay hidden"><div class="cr-header"><div class="cr-title">Tu Rostro en el Tiempo</div></div><div class="cr-body"><div class="portrait-frame"><div class="loader-ring" id="portraitLoader" style="position:absolute;"></div><img src="" class="portrait-img" id="portraitImg" /></div><div style="display:flex; gap:0.5rem"><button class="btn btn-ghost" style="flex:1" id="btnRegenerate" onclick="generatePortrait()">Regenerar</button><button class="btn" style="flex:1" id="btnConfirmPortrait" disabled onclick="showScreen('screen-memory')">Sellar ⚔</button></div></div></div>
+  <div id="screen-memory" class="screen-overlay hidden"><div class="cr-header"><div class="cr-title">El Último Recuerdo</div></div><div class="cr-body"><p style="font-style:italic; margin-bottom:1rem; font-size:0.9rem; color:#7a6050">«Antes del Eclipse... ¿Qué viste?»</p><textarea class="epic-textarea" id="iMemory" rows="6" placeholder="Escribe tu recuerdo..."></textarea></div><div class="cr-footer"><button class="btn" style="flex:1" onclick="confirmMemory()">Iniciar Destino</button></div></div>
+  <div id="screen-loading" class="screen-overlay hidden" style="align-items:center; justify-content:center;"><div class="loader-ring" style="width:60px; height:60px;"></div><p id="loadingMsg" style="margin-top:2rem; font-family:'Cinzel Decorative'; color:var(--gold); animation:pulse 2s infinite;">El Cronista está escribiendo...</p></div>
+  
+  <div id="screen-game" class="screen-overlay hidden">
+    <div class="cr-header" style="display:flex; flex-direction:column; align-items:center;">
+        <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+            <span id="gameCharName" style="font-family:'Cinzel Decorative'; color:var(--gold)"></span>
+            <span id="gameRace" style="font-size:0.7rem; font-style:italic; color:#5a4030"></span>
+        </div>
+        <div id="gamePhysicalStatus" class="status-badge">Estado: Intacto</div>
+        <div id="injury-log"></div>
+    </div>
+    <div class="cr-body">
+      <div id="game-image-wrapper" class="hidden"><div class="loader-ring" id="gameImageLoader" style="position:absolute;"></div><img src="" class="game-image" id="gameImage" /><div class="lupa-btn" onclick="openLightbox()">🔍</div></div>
+      <div class="cronista-text" id="gameText"></div><div id="choices-ctr"></div>
+      <div class="custom-action-ctr" id="customActionCtr" style="display:none">
+          <input type="text" class="custom-input" id="iCustomAction" placeholder="Escribe tu propia voluntad...">
+          <button class="btn" style="width:100%" onclick="submitCustomAction()">Enviar Voluntad ⚔</button>
+      </div>
+    </div>
+    <div class="cr-footer" style="background:none; justify-content:center; padding-bottom:3rem;"><div class="loader-ring" id="gameFooterLoader" style="display:none"></div></div>
+  </div>
+
+  <div id="screen-death" class="screen-overlay hidden" style="background:#050000; align-items:center; justify-content:center; text-align:center;"><h1 style="font-family:'Cinzel Decorative'; font-size:3rem; color:var(--blood); margin-bottom:1rem;">HAS CAÍDO</h1><div id="death-image-wrapper" style="width:90%; max-width:400px; aspect-ratio:1/1; border:1px solid var(--blood); margin-bottom:2rem;"><img src="" id="deathImage" style="width:100%; height:100%; object-fit:cover;" /></div><p id="deathText" style="font-style:italic; margin-bottom:3rem; padding:0 2rem;"></p><button class="btn" onclick="hardReset()">⚔ REENCARNAR</button></div>
+
+  <script>
+  const RACES = [
+    { id:'saiyan', icon:'🔥', name:'Saiyan Maldito', desc:'Tu ki crece con cada herida. La bestia exige tributo.', visual:'muscular warrior, wild spiky black hair' },
+    { id:'humano', icon:'⚡', name:'Humano Forjado', desc:'Sin ki innato. Solo voluntad. Los dioses apuestan en tu contra.', visual:'athletic scarred human warrior' },
+    { id:'namekiano', icon:'🌑', name:'Namekiano', desc:'Te regeneras, pero cada vez olvidas quién eras.', visual:'green skin alien, BALD head, pointed ears' },
+    { id:'majin', icon:'💀', name:'Majin Fracturado', desc:'Poder divino en mente rota. ¿Quién controla a quién?', visual:'pink bubblegum skin alien, BALD head' },
+    { id:'frio', icon:'❄', name:'Raza Fría', desc:'Tu especie fue borrada. El universo debe explicaciones.', visual:'bio-mechanical armor, BALD smooth head' }
+  ];
+  const TRAITS = [
+      {id:'ira', name:'Ira Primordial', desc:'En estado crítico, tu poder se multiplica de forma incontrolable. El costo es tu cordura.'}, 
+      {id:'instinto', name:'Instinto de Depredador', desc:'Lees el combate antes de que ocurra, a costa de perder tu empatía.'}, 
+      {id:'pacto', name:'Pacto Oscuro', desc:'Algo te otorgó poder que no te pertenecía. Algún día vendrá a cobrarlo con intereses.'}
+  ];
+
+  let state = { turn:0, step: 0, char: { name:'', race:'', gender:0, appearance:'', darkOrigin:'', trait:'', lastMemory: '', physicalChanges: 'Intacto', injuryTags: [] } };
+  let gameHistory = [];
+  const MASTER_STYLE = "Masterpiece cinematic dark fantasy, Kentaro Miura anatomical detail, Akira Toriyama biological aesthetic. Intense chiaroscuro. ";
+
+  function hardReset() { localStorage.clear(); window.location.href = window.location.origin + window.location.pathname; }
+  function logoutPuter() { puter.auth.signOut(); toast("Puter desvinculado."); setTimeout(()=>location.reload(), 1000); }
+  function showScreen(id) { ['screen-splash','screen-creation','screen-portrait','screen-memory','screen-loading','screen-game','screen-death'].forEach(s => document.getElementById(s).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+  function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.style.opacity = 1; setTimeout(()=>t.style.opacity=0, 2500); }
+
+  function renderStep() {
+    const titles = ["¿Cómo te llaman?", "Tu linaje", "Tu forma y sombra", "Tu don maldito", "Veredicto"];
+    document.getElementById('crTitle').textContent = titles[state.step];
+    const body = document.getElementById('crBody'); body.innerHTML = '';
+    if(state.step===0) body.innerHTML = `<input type="text" class="epic-input" id="iName" value="${state.char.name}" placeholder="Nombre...">`;
+    if(state.step===1) {
+        body.innerHTML = `<div class="race-grid">` + RACES.map(r => `<div class="race-card ${state.char.race===r.id?'selected':''}" onclick="state.char.race='${r.id}';renderStep()"><span style="font-size:1.4rem; display:block; margin-bottom:0.3rem">${r.icon}</span><b>${r.name}</b><br><small style="color:#6a5050; font-style:italic">${r.desc}</small></div>`).join('') + `</div>`;
+    }
+    if(state.step===2) body.innerHTML = `<textarea class="epic-textarea" id="iApp" rows="3" placeholder="Apariencia (piel, ojos, marcas)...">${state.char.appearance}</textarea><textarea class="epic-textarea" id="iOri" rows="3" placeholder="Origen oscuro...">${state.char.darkOrigin}</textarea>`;
+    if(state.step===3) TRAITS.forEach(t => body.innerHTML += `<div class="trait-card ${state.char.trait===t.id?'selected':''}" style="margin-bottom:0.7rem" onclick="state.char.trait='${t.id}';renderStep()"><b>${t.name}</b><br><small style="color:#6a5050; font-style:italic">${t.desc}</small></div>`);
+    if(state.step===4) {
+        const r = RACES.find(x=>x.id===state.char.race);
+        const t = TRAITS.find(x=>x.id===state.char.trait);
+        body.innerHTML = `<div style="background:#0d0404; padding:1.2rem; border:1px solid #1f0f0f; line-height:1.6"><p><b>Nombre:</b> ${state.char.name}</p><p><b>Linaje:</b> ${r?.name}</p><p><b>Don:</b> ${t?.name}</p></div>`;
+        document.getElementById('btnNext').textContent = "Generar Retrato ⚔";
+    } else document.getElementById('btnNext').textContent = "Continuar";
+  }
+
+  document.getElementById('btnNext').onclick = () => { if(state.step===0) state.char.name = document.getElementById('iName').value.trim(); if(state.step===2) { state.char.appearance = document.getElementById('iApp').value.trim(); state.char.darkOrigin = document.getElementById('iOri').value.trim(); } if(state.step < 4) { state.step++; renderStep(); } else generatePortrait(); };
+  document.getElementById('btnBack').onclick = () => { if(state.step>0) { state.step--; renderStep(); } };
+
+  async function generatePortrait() {
+    showScreen('screen-portrait');
+    const loader = document.getElementById('portraitLoader'); const img = document.getElementById('portraitImg'); 
+    const btnConfirm = document.getElementById('btnConfirmPortrait'); const btnRegen = document.getElementById('btnRegenerate');
+    
+    loader.style.display = 'block'; img.style.opacity = '0'; img.src = '';
+    btnConfirm.disabled = true; btnRegen.disabled = true;
+
+    const r = RACES.find(x=>x.id===state.char.race);
+    const antiHair = (state.char.race==='namekiano' || state.char.race==='majin' || state.char.race==='frio') ? "BALD SMOOTH HEAD, NO HAIR." : "";
+    const p = `${MASTER_STYLE} Full Body Shot. ${state.char.appearance || r?.visual}. ${antiHair} Standing heroically.`;
+    
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=512&height=768&model=flux&nologo=true&seed=${Math.floor(Math.random()*999999)}&t=${Date.now()}`;
+    img.src = url;
+    img.onload = () => { loader.style.display='none'; img.style.opacity='1'; btnConfirm.disabled=false; btnRegen.disabled=false; state.char.portraitUrl = url; };
+    img.onerror = () => { loader.style.display='none'; btnRegen.disabled=false; toast("Reintentando..."); generatePortrait(); };
+  }
+
+  function confirmMemory() { state.char.lastMemory = document.getElementById('iMemory').value.trim(); showScreen('screen-loading'); gameTurn(null); }
+  function submitCustomAction() { const val = document.getElementById('iCustomAction').value.trim(); if(!val) return; document.getElementById('iCustomAction').value = ''; gameTurn(val); }
+
+  async function gameTurn(choice) {
+    showScreen('screen-game');
+    const txt = document.getElementById('gameText'); const cCtr = document.getElementById('choices-ctr'); const fLoad = document.getElementById('gameFooterLoader'); const iWrap = document.getElementById('game-image-wrapper');
+    cCtr.innerHTML = ''; fLoad.style.display = 'block'; iWrap.classList.add('hidden'); document.getElementById('customActionCtr').style.display = 'none';
+    txt.innerHTML = '«El Cronista evalúa tu voluntad...»';
+    try {
+        const actionText = choice ? `ACCIÓN JUGADOR: "${choice}"` : `INICIO. Recuerdo: "${state.char.lastMemory}".`;
+        const systemPrompt = `Eres El Cronista del Eclipse (GM Berserk-Style). Voz violenta. ESPAÑOL OBLIGATORIO.
+        JSON ESTRUCTURA: {"narrative":"...", "choices":["...","...","..."], "visual_moment":"...", "status_update":"...", "new_injury_tag":"(ENGLISH descriptor only if mutilated)", "is_dead": false}
+        CONTEXTO: ${state.char.name}, ${state.char.race}. Aspecto: ${state.char.appearance}. Heridas: ${state.char.injuryTags.join(', ')}.
+        ${actionText}`;
+        
+        // VOLVEMOS A PUTER PARA EL TEXTO (MAYOR FIABILIDAD JSON)
+        const resp = await puter.ai.chat(systemPrompt);
+        let raw = typeof resp === 'string' ? resp : (resp.message?.content || JSON.stringify(resp));
+        const start = raw.indexOf('{'); const end = raw.lastIndexOf('}');
+        const res = JSON.parse(raw.substring(start, end + 1));
+        
+        if(res.new_injury_tag) state.char.injuryTags.push(res.new_injury_tag);
+        state.char.physicalChanges = res.status_update || state.char.physicalChanges;
+        gameHistory.push({r:choice||'Inicio', n:res.narrative});
+        if(gameHistory.length > 4) gameHistory.shift();
+        if(res.is_dead) { handleDeath(res.narrative, res.visual_moment); return; }
+
+        iWrap.classList.remove('hidden'); document.getElementById('gameImageLoader').style.display='block'; document.getElementById('gameImage').style.opacity='0';
+        const injuries = state.char.injuryTags.length ? "MANDATORY: " + state.char.injuryTags.join(', ') + ". " : "";
+        const antiHair = (state.char.race==='namekiano' || state.char.race==='majin' || state.char.race==='frio') ? "BALD HEAD, NO HAIR." : "";
+        const imgP = `${MASTER_STYLE} ${injuries} THE SCENE: ${res.visual_moment}. CHARACTER: ${state.char.appearance}. ${antiHair} CINEMATIC ACTION.`;
+        
+        const gi = document.getElementById('gameImage'); 
+        gi.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(imgP)}?width=896&height=504&model=flux&nologo=true&seed=${Math.floor(Math.random()*999999)}&t=${Date.now()}`;
+        gi.onload = () => { gi.style.opacity='1'; document.getElementById('gameImageLoader').style.display='none'; };
+
+        document.getElementById('gameCharName').textContent = state.char.name;
+        document.getElementById('gameRace').textContent = RACES.find(r=>r.id===state.char.race)?.name;
+        document.getElementById('gamePhysicalStatus').textContent = "Estado: " + state.char.physicalChanges;
+        document.getElementById('injury-log').textContent = state.char.injuryTags.length ? "Heridas: " + state.char.injuryTags.join(' · ') : "";
+        
+        txt.innerHTML = ''; typewriter(txt, res.narrative, 15, () => {
+            res.choices.forEach(c => { const b = document.createElement('button'); b.className = 'choice-btn'; b.textContent = c; b.onclick = () => gameTurn(c); cCtr.appendChild(b); });
+            document.getElementById('customActionCtr').style.display = 'block';
+            fLoad.style.display = 'none';
+        });
+    } catch(e) { fLoad.style.display='none'; txt.innerHTML = "Falla de red o filtros. Prueba otra acción."; document.getElementById('customActionCtr').style.display = 'block'; }
+  }
+
+  function handleDeath(n, s) {
+      showScreen('screen-death');
+      document.getElementById('deathText').textContent = n;
+      const imgP = `${MASTER_STYLE} THE END: ${s}. Defeated corpse of ${state.char.appearance}.`;
+      document.getElementById('deathImage').src = `https://image.pollinations.ai/prompt/${encodeURIComponent(imgP)}?width=512&height=512&model=flux&nologo=true`;
+  }
+
+  function typewriter(el, text, speed, onDone) { let i = 0; const iv = setInterval(() => { if (i < text.length) { el.appendChild(document.createTextNode(text[i])); i++; } else { clearInterval(iv); if(onDone) onDone(); } }, speed); }
+  function openLightbox() { document.getElementById('lightbox-img').src = document.getElementById('gameImage').src; document.getElementById('screen-lightbox').classList.add('active'); }
+  window.onload = () => { setTimeout(() => document.getElementById('loader').classList.add('hidden'), 600); const eb = document.getElementById('embers'); for(let i=0; i<10; i++) { const e = document.createElement('div'); e.className='ember'; e.style.setProperty('--x',Math.random()*100+'vw'); e.style.setProperty('--dur',Math.random()*5+5+'s'); eb.appendChild(e); } };
+  </script>
+</body>
+</html>
